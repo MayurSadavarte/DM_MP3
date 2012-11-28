@@ -1,4 +1,4 @@
-package classification;
+package nbbase;
 
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
@@ -7,22 +7,15 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Vector;
 
-import nbbase.NBBase;
-import nbbase.fileParser;
+public class fileParser {
+	String fileName = null;
+	
+	public fileParser(String fname) {
+		fileName = fname;
+	}
 
-public class NaiveBayes {
-	private NBBase nb_classifier=null;
-	
-	
-	public NaiveBayes(HashMap<Vector<Integer>, String> training_map, HashMap<Vector<Integer>, String> test_map) {
-		nb_classifier = new NBBase(training_map, test_map);
-	}
-	
-	private void NBClassify() {
-		nb_classifier.NBClassify();
-	}
-	
-	private static HashMap<Vector<Integer>, String> getTuples(String fileName) {
+
+	public HashMap<Vector<Integer>, String> getTuples() {
 		HashMap<Vector<Integer>, String> tuplesMap = new HashMap<Vector<Integer>, String>();
 		FileReader file_reader=null;
 		
@@ -64,18 +57,6 @@ public class NaiveBayes {
 			e.printStackTrace();
 		}
 		return tuplesMap;
-	}
-	/**
-	 * @param args
-	 */
-	public static void main(String[] args) {
-		// TODO Auto-generated method stub
-		fileParser fileparserTR = new fileParser(args[0]);
-		fileParser fileparserTE = new fileParser(args[1]);
-		HashMap<Vector<Integer>, String> inputTRMap = fileparserTR.getTuples();
-		HashMap<Vector<Integer>, String> inputTEMap = fileparserTE.getTuples();
-		NaiveBayes NBClassifier = new NaiveBayes(inputTRMap, inputTEMap);
-		NBClassifier.NBClassify();
 	}
 
 }
