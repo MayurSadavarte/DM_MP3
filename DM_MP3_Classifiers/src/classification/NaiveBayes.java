@@ -14,8 +14,8 @@ public class NaiveBayes {
 	private NBBase nb_classifier=null;
 	
 	
-	public NaiveBayes(HashMap<Vector<Integer>, String> training_map, HashMap<Vector<Integer>, String> test_map) {
-		nb_classifier = new NBBase(training_map, test_map);
+	public NaiveBayes(Vector<Vector<Integer>> trtuples, Vector<String> trcls, Vector<Vector<Integer>> tetuples, Vector<String> tecls) {
+		nb_classifier = new NBBase(trtuples, trcls, tetuples, tecls);
 	}
 	
 	private void NBClassify() {
@@ -74,7 +74,20 @@ public class NaiveBayes {
 		fileParser fileparserTE = new fileParser(args[1]);
 		HashMap<Vector<Integer>, String> inputTRMap = fileparserTR.getTuples();
 		HashMap<Vector<Integer>, String> inputTEMap = fileparserTE.getTuples();
-		NaiveBayes NBClassifier = new NaiveBayes(inputTRMap, inputTEMap);
+		Vector<Vector<Integer>> trtuples=new Vector<Vector<Integer>>();
+		Vector<Vector<Integer>> tetuples=new Vector<Vector<Integer>>();
+		Vector<String> trcls=new Vector<String>();
+		Vector<String> tecls=new Vector<String>();
+		for (Vector<Integer> AttrVal: inputTRMap.keySet()) {
+			trtuples.add(AttrVal);
+			trcls.add(inputTRMap.get(AttrVal));
+		}
+		for (Vector<Integer> AttrVal: inputTEMap.keySet()) {
+			tetuples.add(AttrVal);
+			tecls.add(inputTEMap.get(AttrVal));
+		}
+		
+		NaiveBayes NBClassifier = new NaiveBayes(trtuples, trcls, tetuples, tecls);
 		NBClassifier.NBClassify();
 	}
 

@@ -16,6 +16,12 @@ public class NBAdaboost {
 	HashMap<Vector<Integer>, String> inputMap = null;
 	HashMap<Vector<Integer>, Float> tupleWeights = null;
 	
+	public Vector<Vector<Integer>> trainingTuples=null;
+	public Vector<String> trainingClasses=null;
+	public Vector<Vector<Integer>> testingTuples=null;
+	public Vector<String> testingClasses=null;
+	
+	
 	public NBAdaboost(HashMap<Vector<Integer>, String> inputTRMap, HashMap<Vector<Integer>, String> inputTEMap) {
 		trainingMap = inputTRMap;
 		inputMap = inputTEMap;
@@ -58,24 +64,27 @@ public class NBAdaboost {
 	}
 	
 	
-	private Vector<HashMap<Vector<Integer>, String>> fetchNewTrainingTestingSets() {
-		Vector<HashMap<Vector<Integer>, String>> tupleVector=new Vector<HashMap<Vector<Integer>, String>>();
-		HashMap<Vector<Integer>, String> newTrMap = new HashMap<Vector<Integer>, String>();
+	private void fetchNewTrainingTestingSets() {
+		
+		//HashMap<Vector<Integer>, String> newTrMap = new HashMap<Vector<Integer>, String>();
 		
 		//System.out.println(tupleWeights);
 		
-		Vector<Integer> tAttrList=null;
+		Vector<Vector<Integer>> TrTuples=new Vector<Vector<Integer>>();
+		Vector<Integer>tAttrList=new Vector<Integer>();
+		Vector<String> TrClsList=new Vector<String>();
 		for(int i=0; i<trainingMap.size(); i++) {
 			double random = Math.random();
 			tAttrList = getRandomWeightedTuple(random);
-			newTrMap.put(tAttrList, trainingMap.get(tAttrList));
+			TrTuples.add(tAttrList);
+			TrClsList.add(trainingMap.get(tAttrList));
 		}
 		
-		System.out.println(tupleWeights);
-		tupleVector.add(newTrMap);
-		tupleVector.add(newTrMap);
+		trainingTuples=TrTuples;
+		trainingClasses=TrClsList;
 		
-		return tupleVector;
+		System.out.println(tupleWeights);
+		System.out.println(TrTuples);
 	}
 	
 	
@@ -83,23 +92,28 @@ public class NBAdaboost {
 		Float error=new Float(0.0);
 		System.out.println(tupleWeights);
 		
-		for(Vector<Integer> AttrList: newNBBase.inputMap.keySet()) {
-			if (!newNBBase.inputMap.get(AttrList).equalsIgnoreCase(newNBBase.outputMap.get(AttrList))) {
+		int i=0;
+		for(Vector<Integer> AttrList: newNBBase.trainingTuples) {
+			
+			if (!newNBBase.trainingClasses.elementAt(i).equalsIgnoreCase(newNBBase.outputClasses.elementAt(i))) {
 				error = error + tupleWeights.get(AttrList);
 			}
+			i++;
 		}
 		
 		//System.out.println(error);
 		
-		Float totalWeight=new Float(0.0);
-		for(Vector<Integer> AttrList: newNBBase.inputMap.keySet()) {
-			if (newNBBase.inputMap.get(AttrList).equalsIgnoreCase(newNBBase.outputMap.get(AttrList))) {
+		i=0;
+		for(Vector<Integer> AttrList: newNBBase.trainingTuples) {
+			if (newNBBase.trainingClasses.elementAt(i).equalsIgnoreCase(newNBBase.outputClasses.elementAt(i))) {
 				Float uwt = tupleWeights.get(AttrList);
 				uwt = uwt * (error/(new Float(1.0) - error));
 				tupleWeights.put(AttrList, uwt);
 			}	
+			i++;
 		}
 		
+		Float totalWeight=new Float(0.0);
 		for(Vector<Integer> AttrList: tupleWeights.keySet()) {
 			totalWeight = totalWeight + tupleWeights.get(AttrList);
 		}
@@ -120,8 +134,8 @@ public class NBAdaboost {
 	
 		for(int i=0; i<ensemble_size; i++) {
 			
-			Vector<HashMap<Vector<Integer>, String>> tupleVector = fetchNewTrainingTestingSets();
-			NBBase newNBBase = new NBBase(tupleVector.elementAt(0), tupleVector.elementAt(1));
+			fetchNewTrainingTestingSets();
+			NBBase newNBBase = new NBBase(trainingTuples, trainingClasses, trainingTuples, trainingClasses);
 			Ensemble.add(newNBBase);
 			newNBBase.NBClassify();
 			updateTupleWeights(newNBBase);
@@ -148,6 +162,8 @@ public class NBAdaboost {
 		fileParser fileparserTE = new fileParser(args[1]);
 		HashMap<Vector<Integer>, String> inputTRMap = fileparserTR.getTuples();
 		HashMap<Vector<Integer>, String> inputTEMap = fileparserTE.getTuples();
+		
+		
 		NBAdaboost NBAdabooster = new NBAdaboost(inputTRMap, inputTEMap);
 		
 		NBAdabooster.EnsembleClassify();

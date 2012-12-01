@@ -6,6 +6,12 @@ import java.util.Vector;
 
 public class NBBase {
 	HashMap<Integer, HashMap<Integer, Vector<Integer>>> perAttrMaps = new HashMap<Integer, HashMap<Integer, Vector<Integer>>>();
+	public Vector<Vector<Integer>> trainingTuples=null;
+	public Vector<String> trainingClasses=null;
+	public Vector<Vector<Integer>> testingTuples=null;
+	public Vector<String> testingClasses=null;
+	public Vector<Vector<Integer>> outputTuples=new Vector<Vector<Integer>>();
+	public Vector<String> outputClasses=new Vector<String>();
 	public HashMap<Vector<Integer>, String> trainingMap=null;
 	public HashMap<Vector<Integer>, String> inputMap = null;
 	public HashMap<Vector<Integer>, String> outputMap = null;
@@ -15,10 +21,11 @@ public class NBBase {
 	long tr_class0tuples=0;					//"-1" - N
 	long tr_class1tuples=0;					//"+1" - P
 
-	public NBBase(HashMap<Vector<Integer>, String> training_map, HashMap<Vector<Integer>, String> test_map) {
-		trainingMap = training_map;
-		inputMap = test_map;
-		
+	public NBBase(Vector<Vector<Integer>> trtuples, Vector<String> trcls, Vector<Vector<Integer>> tetuples, Vector<String> tecls) {
+		trainingTuples = trtuples;
+		trainingClasses = trcls;
+		testingTuples = tetuples;
+		testingClasses = tecls;
 	}
 	
 	private void RemoveZeroError() {
@@ -55,17 +62,20 @@ public class NBBase {
 		//P, N, TP, TN, FP, FN
 		//so that based on these stats we can calculate results
 		long TP=0, TN=0, FP=0, FN=0;
-		
-		for(Vector<Integer> attrList: outputMap.keySet()) {
-			if(!outputMap.get(attrList).equalsIgnoreCase(inputMap.get(attrList))) {
-				if (outputMap.get(attrList).equalsIgnoreCase("+1"))
+		int i=0;
+		for(Vector<Integer> attrList: outputTuples) {
+			String clsop = outputClasses.get(i);
+			i++;
+			
+			if(!clsop.equalsIgnoreCase(testingClasses.get(testingTuples.indexOf(attrList)))) {
+				if (clsop.equalsIgnoreCase("+1"))
 					FP++;
-				else if(inputMap.get(attrList).equalsIgnoreCase("+1"))
+				else if(testingClasses.get(testingTuples.indexOf(attrList)).equalsIgnoreCase("+1"))
 					FN++;
 				else
 					TN++;
 			}
-			else if(outputMap.get(attrList).equalsIgnoreCase("+1"))
+			else if(clsop.equalsIgnoreCase("+1"))
 				TP++;
 			else
 				TN++;
@@ -91,9 +101,9 @@ public class NBBase {
 	
 	private void NBTrain() {
 		
-		for(Vector<Integer> AttrList: trainingMap.keySet()) {
+		for(Vector<Integer> AttrList: trainingTuples) {
 			tr_totalTuples++;
-			String cls = trainingMap.get(AttrList);
+			String cls = trainingClasses.get(trainingTuples.indexOf(AttrList));
 			if(cls.equalsIgnoreCase("+1"))
 				tr_class1tuples++;
 			else
@@ -226,7 +236,7 @@ public class NBBase {
 		
 		Vector<Float> clsop = new Vector<Float>();
 
-		for(Vector<Integer> AttrList: inputMap.keySet()) {
+		for(Vector<Integer> AttrList: testingTuples) {
 			//System.out.println(AttrList+" test input tuple");
 			clsop = FetchClass(AttrList);
 			//System.out.println("float output vector - "+clsop);
@@ -238,12 +248,14 @@ public class NBBase {
 			else {
 				outputCls = "+1";
 			}
-			resultMap.put(AttrList, outputCls);
+			//resultMap.put(AttrList, outputCls);
+			outputTuples.add(AttrList);
+			outputClasses.add(outputCls);
 			
 			System.out.println(outputCls + AttrList.toString());
 		}
 			
-		outputMap = resultMap;
+		//outputMap = resultMap;
 	}
 	
 	
