@@ -22,6 +22,7 @@ public class NaiveBayes {
 		nb_classifier.NBClassify();
 	}
 	
+	/*
 	private static HashMap<Vector<Integer>, String> getTuples(String fileName) {
 		HashMap<Vector<Integer>, String> tuplesMap = new HashMap<Vector<Integer>, String>();
 		FileReader file_reader=null;
@@ -65,6 +66,7 @@ public class NaiveBayes {
 		}
 		return tuplesMap;
 	}
+	*/
 	/**
 	 * @param args
 	 */
