@@ -224,7 +224,7 @@ public class NBAdaboost {
 			}
 			if (weight0cls == weight1cls) {
 				//System.out.println("Weird case - weight0cls - "+weight0cls+", weight1cls - "+weight1cls);
-				System.exit(-1);
+				outputClasses.insertElementAt("-1", i);
 			}
 			else if(weight0cls > weight1cls) {
 				outputClasses.insertElementAt("-1", i);
