@@ -129,7 +129,7 @@ public class NBBase {
 		//System.out.println(perAttrMaps);
 		RemoveZeroError();
 			
-			//FetchStats(perAttrMaps);
+		//FetchStats(perAttrMaps);
 	}
 	
 	
@@ -152,9 +152,9 @@ public class NBBase {
 			if (perValMap.get(AttrList.get(i)) != null)
 				attrCnt = perValMap.get(AttrList.get(i)).elementAt(0);
 			else {
-				System.out.println("AttrNo - "+intkey);
-				System.out.println("perValMap - "+perValMap);
-				System.out.println("ReqVal - "+AttrList.get(i));
+				//System.out.println("AttrNo - "+intkey);
+				//System.out.println("perValMap - "+perValMap);
+				//System.out.println("ReqVal - "+AttrList.get(i));
 				
 				Vector<Integer> newEntry = new Vector<Integer>();
 				newEntry.add(1);
@@ -225,8 +225,8 @@ public class NBBase {
 				outputCls = "-1";
 			}
 			else if ((clsop.elementAt(0).compareTo(clsop.elementAt(1)) == 0)) {
-				System.out.println("NaiveBayes: NBTest, CondProb are same!! can this happen?? - "+clsop);
-				outputCls = "+1";
+				//System.out.println("NaiveBayes: NBTest, CondProb are same!! can this happen?? - "+clsop);
+				outputCls = "-1";
 			}
 			else 
 				outputCls = "+1";
@@ -259,7 +259,7 @@ public class NBBase {
 			//	System.out.println("NaivaBayes: some error in matching of tuples");
 			
 			if(!clsop.equalsIgnoreCase(testingClasses.get(i))) {
-				System.out.println("Problematic Tuples - "+testingTuples.get(i)+"-"+testingClasses.get(i)+" "+"-"+outputClasses.get(i));
+				//System.out.println("Problematic Tuples - "+testingTuples.get(i)+"-"+testingClasses.get(i)+" "+"-"+outputClasses.get(i));
 				if (clsop.equalsIgnoreCase("+1"))
 					{FP++; N++;}
 				else if(testingClasses.get(i).equalsIgnoreCase("+1"))
@@ -281,13 +281,17 @@ public class NBBase {
 		clsStats.add(new Long(P));
 		clsStats.add(new Long(N));
 		
-		System.out.println(clsStats);
+		//System.out.println(clsStats);
+		System.out.println(TP);
+		System.out.println(FN);
+		System.out.println(FP);
+		System.out.println(TN);
 		return;
 		
 	}
 	
 
-	private void CalculateMeasures() {
+	public void CalculateMeasures() {
 		measures = new Vector<Double> ();
 		
 		measures.add(new Double((clsStats.elementAt(0).doubleValue()+clsStats.elementAt(3).doubleValue())/(clsStats.elementAt(4).doubleValue()+ clsStats.elementAt(5).doubleValue())));
@@ -301,21 +305,16 @@ public class NBBase {
 		b=2;
 		measures.add(new Double((1+b*b)*measures.get(4)*measures.get(2)/(b*b*measures.get(4)+measures.get(2))));
 	
-		System.out.println(measures);
+		//System.out.println(measures);
 	}
 	
 	public void NBClassify() {
 		
-		System.out.println("NaiveBayes: Starting Training!!");
+		//System.out.println("NaiveBayes: Starting Training!!");
 		NBTrain();
-		System.out.println("NaviveBayes: Starting Test!!");
+		//System.out.println("NaviveBayes: Starting Test!!");
 		NBTest();
 		
-		System.out.println("NaivaBayes: Fetching Stats!!");
-		FetchStats();
-		
-		System.out.println("NaiveBayes: Calculating Accuracy Measures");
-		CalculateMeasures();
 	}
 
 }

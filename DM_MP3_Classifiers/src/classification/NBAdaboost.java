@@ -10,11 +10,11 @@ import nbbase.fileParser;
 
 public class NBAdaboost {
 	private Vector<NBBase> Ensemble = null;
-	private HashMap<NBBase, Float> NBWeights = new HashMap<NBBase, Float>();
-	private int ensemble_size = 3;
+	private HashMap<NBBase, Double> NBWeights = new HashMap<NBBase, Double>();
+	private int ensemble_size = 4;
 	HashMap<Vector<Integer>, String> trainingMap=null;
 	HashMap<Vector<Integer>, String> inputMap = null;
-	HashMap<Vector<Integer>, Float> tupleWeights = null;
+	HashMap<Vector<Integer>, Double> tupleWeights = null;
 	
 	
 	public Vector<Vector<Integer>> trainingTuples=null;
@@ -38,10 +38,10 @@ public class NBAdaboost {
 	}
 	
 	private void initializeWeights() {
-		tupleWeights = new HashMap<Vector<Integer>, Float>();
+		tupleWeights = new HashMap<Vector<Integer>, Double>();
 		
 		for(Vector<Integer> AttrList: trainingTuples) {
-			tupleWeights.put(AttrList, new Float((double)1.0/(double)trainingTuples.size()));
+			tupleWeights.put(AttrList, new Double((double)1.0/(double)trainingTuples.size()));
 		}
 	}
 	
@@ -66,11 +66,11 @@ public class NBAdaboost {
 		
 		//System.out.println(tupleWeights);
 		
-		Float comWt=new Float(0.0);
+		Double comWt=new Double(0.0);
 		Vector<Integer> AttrVal = null;
 		for(Vector<Integer> tAttrVal: tupleWeights.keySet()) {
 			comWt = comWt + tupleWeights.get(tAttrVal);
-			if(comWt > new Float(random))
+			if(comWt > new Double(random))
 				return tAttrVal;
 			AttrVal = tAttrVal;
 		}
@@ -81,24 +81,24 @@ public class NBAdaboost {
 	private void fetchNewTrainingTestingSets() {
 		
 		long totalTuples=trainingTuples.size();
-		long newTrTuples= (long)((double)totalTuples * 0.7);
+		long newTrTuples= (long)((double)totalTuples * 1);
 		//long newTrTuples = totalTuples;
 		
 		//HashMap<Vector<Integer>, String> newTrMap = new HashMap<Vector<Integer>, String>();
 		//System.out.println(tupleWeights);
-		System.out.println("Adaboost: fetchNewTrainingTestingSets");
+		//System.out.println("Adaboost: fetchNewTrainingTestingSets");
 		
 		Vector<Vector<Integer>> TrTuples=new Vector<Vector<Integer>>();
 		Vector<Integer>tAttrList=new Vector<Integer>();
 		Vector<String> TrClsList=new Vector<String>();
 	
-		System.out.println(tupleWeights.values());
+		//System.out.println(tupleWeights.values());
 		int i=0;
 		while(true) {
 			double random = Math.random();
 			tAttrList = getRandomWeightedTuple(random);
-			if (TrTuples.contains(tAttrList))
-				continue;
+			//if (TrTuples.contains(tAttrList))
+			//	continue;
 			TrTuples.add(tAttrList);
 			TrClsList.add(trainingClasses.get(trainingTuples.indexOf(tAttrList)));
 			i++;
@@ -116,54 +116,63 @@ public class NBAdaboost {
 	
 	
 	private void updateWeights(NBBase newNBBase) {
-		System.out.println("Adaboost: updateWeights ################################################");
-		Float error=new Float(0.0);
+		//System.out.println("Adaboost: updateWeights ################################################");
+		Double error=new Double(0.0);
 		//System.out.println(tupleWeights);
 		
 		int i=0;
-		for(Vector<Integer> AttrList: newNBBase.trainingTuples) {
+		Double ttwt = new Double(0.0);
+		for(Vector<Integer> AttrList: newNBBase.testingTuples) {
 			
-			if (!newNBBase.trainingClasses.elementAt(i).equalsIgnoreCase(newNBBase.outputClasses.elementAt(i))) {
+			if (!newNBBase.testingClasses.elementAt(i).equalsIgnoreCase(newNBBase.outputClasses.elementAt(i))) {
 				error = error + tupleWeights.get(AttrList);
 			}
+			ttwt = ttwt + tupleWeights.get(AttrList);;
 			i++;
 		}
 		
-		if (error == 0) {
-			System.out.println("The Error for this NBBase seems to be zero, hence will restructure the error - "+error);
-			error = error + new Float(0.1);
+		//System.out.println("updateWeights - error1- "+error);
+		error = error/ttwt;
+		
+		if (error.equals(new Double(0.0))) {
+			//System.out.println("The Error for this NBBase seems to be zero, hence will restructure the error - "+error);
+			error = error + new Double(0.01);
 		}
 		
-		NBWeights.put(newNBBase, new Float(Math.log((1 - error)/error)));
-				
+		//System.out.println("updateWeights - error2- "+error);
 		
-		//System.out.println(error);
 		
-		i=0;
-		for(Vector<Integer> AttrList: newNBBase.trainingTuples) {
-			if (newNBBase.trainingClasses.elementAt(i).equalsIgnoreCase(newNBBase.outputClasses.elementAt(i))) {
-				Float uwt = tupleWeights.get(AttrList);
-				uwt = uwt * (error/(new Float(1.0) - error));
+		if (error < new Double(0.5)) {
+			Ensemble.add(newNBBase);
+
+			NBWeights.put(newNBBase, new Double(Math.log((new Double(1.0) - error)/error)));
+
+			i=0;
+			for(Vector<Integer> AttrList: newNBBase.testingTuples) {
+				if (newNBBase.testingClasses.elementAt(i).equalsIgnoreCase(newNBBase.outputClasses.elementAt(i))) {
+					Double uwt = tupleWeights.get(AttrList);
+					uwt = uwt * (error/(new Double(1.0) - error));
+					tupleWeights.put(AttrList, uwt);
+				}	
+				i++;
+			}
+
+			Double totalWeight=new Double(0.0);
+			for(Vector<Integer> AttrList: tupleWeights.keySet()) {
+				totalWeight = totalWeight + tupleWeights.get(AttrList);
+			}
+
+			//System.out.println(tupleWeights);
+			//System.out.println("updateweights - totalweight- "+totalWeight);
+
+			for(Vector<Integer> AttrList: tupleWeights.keySet()) {
+				Double uwt = tupleWeights.get(AttrList);
+				uwt = uwt / totalWeight;
 				tupleWeights.put(AttrList, uwt);
-			}	
-			i++;
+			}
+
+			//System.out.println(tupleWeights);
 		}
-		
-		Float totalWeight=new Float(0.0);
-		for(Vector<Integer> AttrList: tupleWeights.keySet()) {
-			totalWeight = totalWeight + tupleWeights.get(AttrList);
-		}
-		
-		//System.out.println(tupleWeights);
-		//System.out.println(totalWeight);
-		
-		for(Vector<Integer> AttrList: tupleWeights.keySet()) {
-			Float uwt = tupleWeights.get(AttrList);
-			uwt = uwt / totalWeight;
-			tupleWeights.put(AttrList, uwt);
-		}
-	
-		//System.out.println(tupleWeights);
 	}
 	
 	
@@ -171,11 +180,11 @@ public class NBAdaboost {
 	
 	private void trainensemble() {
 	
-		for(int i=0; i<ensemble_size; i++) {
+		while(Ensemble.size()<ensemble_size) {
+			//System.out.println("Ensemble.size - "+Ensemble.size()+" ensemble_size - "+ensemble_size);
 			fetchNewTrainingTestingSets();
 			//NBBase newNBBase = new NBBase(rTrTuples, rTrClasses, testingTuples, testingClasses);
 			NBBase newNBBase = new NBBase(rTrTuples, rTrClasses, rTrTuples, rTrClasses);
-			Ensemble.add(newNBBase);
 			newNBBase.NBClassify();
 			updateWeights(newNBBase);
 		}
@@ -189,7 +198,7 @@ public class NBAdaboost {
 			testingBase.testingClasses = testingClasses;
 			
 			testingBase.NBTest();
-			testingBase.FetchStats();
+			//testingBase.FetchStats();
 		}
 		ReconcileEnsemble();
 	}
@@ -198,12 +207,12 @@ public class NBAdaboost {
 	
 	
 	private void ReconcileEnsemble() {
-		System.out.println("Adaboost: ReconcileEnsemble in Adaboost");
+		//System.out.println("Adaboost: ReconcileEnsemble in Adaboost");
 		int i=0;
 		outputClasses = new Vector<String>();
 		for(Vector<Integer> AttrList: testingTuples) {
-			Float weight0cls=new Float(0.0);
-			Float weight1cls=new Float(0.0);
+			Double weight0cls=new Double(0.0);
+			Double weight1cls=new Double(0.0);
 				
 			for(NBBase testingBase: Ensemble) {
 				if(testingBase.outputClasses.elementAt(i).equalsIgnoreCase("-1")) {
@@ -214,7 +223,7 @@ public class NBAdaboost {
 				}
 			}
 			if (weight0cls == weight1cls) {
-				System.out.println("Weird case - weight0cls - "+weight0cls+", weight1cls - "+weight1cls);
+				//System.out.println("Weird case - weight0cls - "+weight0cls+", weight1cls - "+weight1cls);
 				System.exit(-1);
 			}
 			else if(weight0cls > weight1cls) {
@@ -245,7 +254,7 @@ public class NBAdaboost {
 			//	System.out.println("NaivaBayes: some error in matching of tuples");
 			
 			if(!clsop.equalsIgnoreCase(testingClasses.get(i))) {
-				System.out.println("Problematic Tuples - "+testingTuples.get(i)+"-"+testingClasses.get(i)+" "+"-"+outputClasses.get(i));
+				//System.out.println("Problematic Tuples - "+testingTuples.get(i)+"-"+testingClasses.get(i)+" "+"-"+outputClasses.get(i));
 				if (clsop.equalsIgnoreCase("+1"))
 					{FP++; N++;}
 				else if(testingClasses.get(i).equalsIgnoreCase("+1"))
@@ -267,50 +276,15 @@ public class NBAdaboost {
 		clsStats.add(new Long(P));
 		clsStats.add(new Long(N));
 		
-		System.out.println(clsStats);
+		//System.out.println(clsStats);
+		System.out.println(TP);
+		System.out.println(FN);
+		System.out.println(FP);
+		System.out.println(TN);
 		return;
 		
 	}
 
-/*	private void fetchStats() {
-		//stats we are supposed to fetch first are
-		//P, N, TP, TN, FP, FN
-		//so that based on these stats we can calculate results
-		long TP=0, TN=0, FP=0, FN=0;
-		int i=0;
-		System.out.println(testingClasses);
-		System.out.println(outputClasses);
-		
-		clsStats = new Vector<Long>();
-		for(Vector<Integer> attrList: testingTuples) {
-			
-			String clsop = outputClasses.get(i);
-						
-			if(!clsop.equalsIgnoreCase(testingClasses.get(i))) {
-				if (clsop.equalsIgnoreCase("+1"))
-					FP++;
-				else if(testingClasses.get(i).equalsIgnoreCase("+1"))
-					FN++;
-				else
-					TN++;
-			}
-			else if(clsop.equalsIgnoreCase("+1"))
-				TP++;
-			else
-				TN++;
-		
-			i++;
-		}
-		clsStats.add(new Long(TP));
-		clsStats.add(new Long(FN));
-		clsStats.add(new Long(FP));
-		clsStats.add(new Long(TN));
-		
-		System.out.println(clsStats);
-		return;
-		
-	}
-	*/
 	private void CalculateMeasures() {
 		measures = new Vector<Double> ();
 		
@@ -325,22 +299,22 @@ public class NBAdaboost {
 		b=2;
 		measures.add(new Double((1+b*b)*measures.get(4)*measures.get(2)/(b*b*measures.get(4)+measures.get(2))));
 	
-		System.out.println(measures);
+		//System.out.println(measures);
 	}
 	
 	private void EnsembleClassify() {
 		initializeWeights();
 		
-		System.out.println("Adaboost: Training AdaBoost");
+		//System.out.println("Adaboost: Training AdaBoost");
 		trainensemble();
 		
-		System.out.println("Adaboost: Testing Adaboost");
+		//System.out.println("Adaboost: Testing Adaboost");
 		testensemble();
 		
-		System.out.println("Adaboost: Fetching Adaboost Stats");
+		//System.out.println("Adaboost: Fetching Adaboost Stats");
 		FetchStats();
 		
-		System.out.println("Adaboost: Calculating Accuracy Measures");
+		//System.out.println("Adaboost: Calculating Accuracy Measures");
 		CalculateMeasures();
 	}
 	/**

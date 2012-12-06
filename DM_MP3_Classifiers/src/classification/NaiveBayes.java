@@ -20,6 +20,12 @@ public class NaiveBayes {
 	
 	private void NBClassify() {
 		nb_classifier.NBClassify();
+
+		//System.out.println("NaivaBayes: Fetching Stats!!");
+		nb_classifier.FetchStats();
+				
+				//System.out.println("NaiveBayes: Calculating Accuracy Measures");
+		nb_classifier.CalculateMeasures();
 	}
 	
 	/*
