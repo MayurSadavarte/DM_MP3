@@ -2,6 +2,7 @@ package classification;
 
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Vector;
 
@@ -49,20 +50,6 @@ public class NBAdaboost {
 		//System.out.println("Adaboost: getRandomWeightedTuple");
 		
 		//Vector<Float> Weights = new Vector<Float>(tupleWeights.values());
-		Vector<Vector<Integer>> AttrList = new Vector<Vector<Integer>>(tupleWeights.keySet());
-		
-		Collections.sort(AttrList, new Comparator<Vector<Integer>>(){
-			public int compare(Vector<Integer> firstVal, Vector<Integer> secondVal){
-				//String firstkey = (String)first;
-				//String secondkey = (String)second;
-				if(tupleWeights.get(firstVal) > tupleWeights.get(secondVal))
-					return -1;
-				else if(tupleWeights.get(firstVal).equals(tupleWeights.get(secondVal)))
-					return 0;
-				else
-					return +1;
-			}
-		});
 		
 		//System.out.println(tupleWeights);
 		
@@ -92,11 +79,29 @@ public class NBAdaboost {
 		Vector<Integer>tAttrList=new Vector<Integer>();
 		Vector<String> TrClsList=new Vector<String>();
 	
+		
+		
+		Vector<Vector<Integer>> AttrList = new Vector<Vector<Integer>>(tupleWeights.keySet());
+		
+		Collections.sort(AttrList, new Comparator<Vector<Integer>>(){
+			public int compare(Vector<Integer> firstVal, Vector<Integer> secondVal){
+				//String firstkey = (String)first;
+				//String secondkey = (String)second;
+				if(tupleWeights.get(firstVal) > tupleWeights.get(secondVal))
+					return -1;
+				else if(tupleWeights.get(firstVal).equals(tupleWeights.get(secondVal)))
+					return 0;
+				else
+					return +1;
+			}
+		});
+		
+		
 		//System.out.println(tupleWeights.values());
 		int i=0;
 		while(true) {
 			double random = Math.random();
-			tAttrList = getRandomWeightedTuple(random);
+		 	tAttrList = getRandomWeightedTuple(random);
 			//if (TrTuples.contains(tAttrList))
 			//	continue;
 			TrTuples.add(tAttrList);
@@ -179,10 +184,12 @@ public class NBAdaboost {
 	
 	
 	private void trainensemble() {
-	
+				
 		while(Ensemble.size()<ensemble_size) {
 			//System.out.println("Ensemble.size - "+Ensemble.size()+" ensemble_size - "+ensemble_size);
+			System.out.println(new Date().toString()+":*************************** Fetching Samples Started ***********************************");
 			fetchNewTrainingTestingSets();
+			System.out.println(new Date().toString()+":*************************** Fetching Samples Finished ***********************************\n");
 			//NBBase newNBBase = new NBBase(rTrTuples, rTrClasses, testingTuples, testingClasses);
 			NBBase newNBBase = new NBBase(rTrTuples, rTrClasses, rTrTuples, rTrClasses);
 			newNBBase.NBClassify();
